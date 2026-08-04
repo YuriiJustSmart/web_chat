@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мій профіль</title>
+    <!-- Підключення спільного файлу стилів -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="profile-card">
+        <h2>Мій профіль</h2>
+        <p style="color: #65676b; font-size: 14px; margin-bottom: 20px;">Заповніть або оновіть інформацію про себе для кращого пошуку.</p>
+        
+        <form method="POST" action="/profile_setup">
+            <label>Вік:</label>
+            <input type="number" name="age" value="{{ user[4] if user[4] is not none else '' }}" placeholder="Наприклад: 25">
+            
+            <label>Стать:</label>
+            <select name="gender">
+                <option value="">Не вказано</option>
+                <option value="Чоловіча" {% if user[5] == 'Чоловіча' %}selected{% endif %}>Чоловіча</option>
+                <option value="Жіноча" {% if user[5] == 'Жіноча' %}selected{% endif %}>Жіноча</option>
+                <option value="Інша" {% if user[5] == 'Інша' %}selected{% endif %}>Інша</option>
+            </select>
+            
+            <label>Країна:</label>
+            <input type="text" name="country" value="{{ user[6] if user[6] else '' }}" placeholder="Наприклад: Україна">
+            
+            <label>Інтереси (через кому):</label>
+            <input type="text" name="interests" value="{{ user[7] if user[7] else '' }}" placeholder="Музика, програмування, подорожі">
+            
+            <label>Посилання на фото (аватарку):</label>
+            <input type="url" name="avatar" value="{{ user[8] if user[8] else '' }}" placeholder="https://example.com/photo.jpg">
+            
+            <label>Про себе:</label>
+            <textarea name="bio" placeholder="Кілька слів про ваші цілі спілкування...">{{ user[9] if user[9] else '' }}</textarea>
+            
+            <button type="submit" class="btn">Зберегти зміни</button>
+        </form>
+        
+        <a href="/" class="btn-back">Повернутися до чату</a>
+    </div>
+
+</body>
+</html>

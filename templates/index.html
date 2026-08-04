@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SocialNet — Спілкування</title>
+    <!-- Підключення окремого CSS файлу через Flask -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    {% if not logged_in %}
+    <div class="auth-container">
+        <div class="auth-card">
+            <h2>SocialNet</h2>
+            <p>Увійдіть у мережу для спілкування</p>
+            <form method="POST" action="/login">
+                <input type="text" name="username" placeholder="Ім'я користувача" required><br>
+                <input type="password" name="password" placeholder="Пароль" required><br>
+                <button type="submit" class="btn" style="width: 100%; margin-top: 10px;">Увійти</button>
+            </form>
+            <hr style="margin: 20px 0; border:0; border-top: 1px solid var(--border-color);">
+            <p>Ще не маєте акаунта?</p>
+            <form method="POST" action="/register">
+                <input type="text" name="username" placeholder="Ім'я користувача" required><br>
+                <input type="email" name="email" placeholder="Email" required><br>
+                <input type="password" name="password" placeholder="Пароль" required><br>
+                <button type="submit" class="btn btn-secondary" style="width: 100%; margin-top: 10px;">Зареєструватися</button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+
+    <header>
+        <h2>Вітаємо, {{ current_username }}!</h2>
+        <div>
+            <a href="/profile_setup" class="btn btn-secondary">Мій профіль</a>
+            <a href="/logout" class="btn" style="background-color: #fa383e;">Вийти</a>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- ДІАЛОГИ -->
+        <div class="section-box">
+            <h3>Активні чати</h3>
+            {% if grouped_chats %}
+                {% for partner_id, data in grouped_chats.items() %}
+                    <details style="margin-bottom: 10px; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background: #fafafa;">
+                        <summary style="cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px;">
+                            {% if data.partner_avatar %}
+                                <img src="{{ data.partner_avatar }}" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
+                            {% endif %}
+                            Чат з: {{ data.partner_name }} ({{ data.messages|length }} пов.)
+                        </summary>
+                        <div style="margin-top: 10px; padding-left: 10px; border-left: 3px solid var(--primary-color);">
+                            {% for sender_name, msg_text, sender_avatar in data.messages %}
+                                <p style="display: flex; align-items: center; gap: 8px; margin: 6px 0;">
+                                    {% if sender_avatar %}
+                                        <img src="{{ sender_avatar }}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+                                    {% endif %}
+                                    <strong>{{ sender_name }}:</strong> {{ msg_text }}
+                                </p>
+                            {% endfor %}
+                            <form method="POST" action="/send_message" style="margin-top: 10px; display: flex; gap: 10px;">
+                                <input type="hidden" name="receiver_id" value="{{ partner_id }}">
+                                <input type="text" name="message" placeholder="Написати повідомлення..." required style="flex: 1; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px;">
+                                <button type="submit" class="btn" style="padding: 6px 12px;">Надіслати</button>
+                            </form>
+                        </div>
+                    </details>
+                {% endfor %}
+            {% else %}
+                <p style="color: #65676b;">У вас поки немає активних діалогів.</p>
+            {% endif %}
+        </div>
+
+        <!-- ПОШУК ТА ФІЛЬТРИ -->
+        <div class="section-box">
+            <h3>Пошук користувачів</h3>
+            <form method="GET" action="/" class="search-bar">
+                <input type="text" name="username_search" placeholder="Ім'я..." value="{{ request.args.get('username_search', '') }}">
+                <input type="text" name="interest_search" placeholder="Інтереси (напр: музика)..." value="{{ request.args.get('interest_search', '') }}">
+                <input type="number" name="age_min" placeholder="Вік від" value="{{ request.args.get('age_min', '') }}" style="width: 70px;">
+                <input type="number" name="age_max" placeholder="до" value="{{ request.args.get('age_max', '') }}" style="width: 50px;">
+                <input type="text" name="country" placeholder="Країна..." value="{{ request.args.get('country', '') }}">
+                <select name="gender">
+                    <option value="">Будь-яка стать</option>
+                    <option value="Чоловіча" {% if request.args.get('gender') == 'Чоловіча' %}selected{% endif %}>Чоловіча</option>
+                    <option value="Жіноча" {% if request.args.get('gender') == 'Жіноча' %}selected{% endif %}>Жіноча</option>
+                    <option value="Інша" {% if request.args.get('gender') == 'Інша' %}selected{% endif %}>Інша</option>
+                </select>
+                <button type="submit" class="btn">Шукати</button>
+                <a href="/" class="btn btn-secondary" style="text-align: center; line-height: 20px;">Скинути</a>
+            </form>
+        </div>
+
+        <!-- СПИСОК КОРИСТУВАЧІВ (КАРТКИ) -->
+        <div class="section-box">
+            <h3>Користувачі мережі</h3>
+            <div class="users-grid">
+                {% for user in users %}
+                    {% if user[1] != current_username %}
+                        <div class="user-card">
+                            {% if user[8] %}
+                                <img src="{{ user[8] }}" class="user-avatar" onclick="openModal('modal-{{ user[0] }}')">
+                            {% else %}
+                                <div class="user-avatar" style="display:flex; align-items:center; justify-content:center; font-weight:bold; color:#aaa;">👤</div>
+                            {% endif %}
+                            
+                            <div class="user-info" style="flex: 1;">
+                                <h4 onclick="openModal('modal-{{ user[0] }}')">{{ user[1] }}</h4>
+                                <p>{% if user[4] %}Вік: {{ user[4] }}{% endif %} {% if user[6] %}, {{ user[6] }}{% endif %}</p>
+                                
+                                <form method="POST" action="/send_message" style="margin-top: 8px; display: flex; gap: 5px;">
+                                    <input type="hidden" name="receiver_id" value="{{ user[0] }}">
+                                    <input type="text" name="message" placeholder="Повідомлення..." required style="width: 100px; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px;">
+                                    <button type="submit" class="btn" style="padding: 4px 8px; font-size: 12px;">Написати</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- МОДАЛЬНЕ ВІКНО ДЛЯ КОЖНОГО КОРИСТУВАЧА -->
+                        <div id="modal-{{ user[0] }}" class="modal">
+                            <div class="modal-content">
+                                <span class="close-btn" onclick="closeModal('modal-{{ user[0] }}')">&times;</span>
+                                {% if user[8] %}
+                                    <img src="{{ user[8] }}" class="modal-avatar">
+                                {% endif %}
+                                <h2>{{ user[1] }}</h2>
+                                <p><strong>Вік:</strong> {{ user[4] if user[4] else 'Не вказано' }}</p>
+                                <p><strong>Стать:</strong> {{ user[5] if user[5] else 'Не вказано' }}</p>
+                                <p><strong>Країна:</strong> {{ user[6] if user[6] else 'Не вказано' }}</p>
+                                <p><strong>Інтереси:</strong> {{ user[7] if user[7] else 'Не вказано' }}</p>
+                                <p><strong>Про себе:</strong> {{ user[9] if user[9] else 'Користувач нічого не розповів про себе.' }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = "flex";
+        }
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+        }
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = "none";
+            }
+        }
+    </script>
+    {% endif %}
+</body>
+</html>
