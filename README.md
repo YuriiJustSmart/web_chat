@@ -1,12 +1,42 @@
-🚀 Розгортання Flask-додатку на PythonAnywhereПокрокова інструкція для деплою твого проєкту на сервер PythonAnywhere.1. Завантаж файли проєктуПерейди на PythonAnywhere $\rightarrow$ вкладка Files.Створи папки за таким шляхом: /home/YuraJustSmart/my_messenger/.Завантаж туди всі файли твого проєкту: головний файл (app.py), папки з шаблонами (templates), статичними файлами (static) та SQLite-базу (якщо використовується).2. Налаштуй середовище в BashВідкрий вкладку Consoles $\rightarrow$ Bash та виконай команди для створення віртуального середовища й встановлення залежностей:Bashcd ~/my_messenger
-mkvirtualenv --python=/usr/bin/python3.13 compterra-venv
+# 🚀 Розгортання Flask-додатку на PythonAnywhere
+
+Покрокова інструкція для деплою твого проєкту на сервер PythonAnywhere.
+### Замість "mysite" встав назву своєї папки, "YuraJustSmart" - свій нік)
+---
+
+### 1. Завантаж файли
+- Зайди на PythonAnywhere → вкладка Files.
+- Створи папку mysite (або свою назву) і завантаж туди всі файли проєкту: .py, templates, static, SQLite-базу.
+
+### 2. Відкрий Bash
+У розділі Consoles → Bash виконай команди:
+```bash
+cd ~/mysite
+mkvirtualenv --python=/usr/bin/python3.13 mysite-venv
 pip install flask
-💡 Якщо у проєкті є файл із залежностями, встановіть їх однією командою:Bashpip install -r requirements.txt
-3. Створи Web AppПерейди на вкладку Web $\rightarrow$ натисни Add a new web app.Обери Manual configuration $\rightarrow$ вибери Python 3.13.Заповни шляхи до проєкту та віртуального середовища:Source code: /home/YuraJustSmart/my_messengerVirtualenv: /home/YuraJustSmart/.virtualenvs/compterra-venv4. Налаштуй Static Files (Статичні файли)Щоб стилі CSS, скрипти JavaScript та інші статичні ресурси завантажувалися коректно й швидко, налаштуй їх у панелі керування:Перейди на вкладку Web і знайди розділ Static files.Додай нове правило мапінгу:URL: /static/Directory: /home/YuraJustSmart/my_messenger/static/5. Налаштуй WSGI-файлУ розділі Code на вкладці Web клікни на посилання на WSGI configuration file (наприклад, /var/www/yurajustsmart_pythonanywhere_com_wsgi.py).Заміни його вміст на такий код:Pythonimport sys
+```
 
-# Шлях до папки з твоїм проєктом
-sys.path.insert(0, '/home/YuraJustSmart/my_messenger')
+### 3. Створи Web App
+- Перейди у Web → Add a new web app → Manual configuration → Python 3.13.
+- Укажи шляхи:
+  - Source code: /home/YuraJustSmart/mysite
+  - Virtualenv: /home/YuraJustSmart/.virtualenvs/mysite-venv
 
-# Імпорт Flask-додатку (головний файл називається app.py)
+### 4. Налаштуй Static Files
+У розділі Static files укажи параметри:
+- URL: /static/
+- Directory: /home/YuraJustSmart/mysite/static/
+
+### 5. Налаштуй WSGI
+Відкрий WSGI configuration file і встав код:
+```python
+import sys
+sys.path.insert(0, '/home/YuraJustSmart/mysite')
 from app import app as application
-6. Запусти та перевір сайтПовернись на вкладку Web і натисни зелену кнопку Reload.Перейди за посиланням твого сайту: YuraJustSmart.pythonanywhere.com⚠️ Якщо на сайті з'явиться помилка (наприклад, 500 Internal Server Error), перевір деталі у розділі Web $\rightarrow$ Error log.
+```
+*(Якщо головний файл називається main.py, заміни app у рядку імпорту на main).*
+
+### 6. Запусти сайт
+- На вкладці Web натисни кнопку Reload.
+- Відкрий свій сайт: compterra.pythonanywhere.com
+- Якщо з'явиться помилка, перевір Web → Error log.
